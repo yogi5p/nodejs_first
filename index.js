@@ -1,30 +1,39 @@
-import { request } from 'http';
+const path = require("path");
+const express = require("express");
 
-const express = require('express');
-const app = express();
+const app = express(); //init our express app
+//body-parser will take http request body and attach it
+//to the request object automatticly for us
+app.use(require("body-parser")());
 
-const handlebars = require("express-handlebars").create({defaultLayout: 'main'});
+//Configuring the app to use the right templeting engine
+const handlebars = require("express-handlebars").create({
+  defaultLayout: "main"
+});
+
 app.engine("handlebars", handlebars.engine);
-app.set('view engine', 'handlebars');
+app.set("views", path.join(__dirname, "views")); //where are the views?
+app.set("view engine", "handlebars");
 
-app.set('port', process.env.port || 3000);
+app.set("port", process.env.PORT || 3000);
 
-const hostname = 'localhost';
-const port = 3000;
-
-app.get('/', (request, response) => {
-    response.render('home');
+app.get("/", (req, res) => {
+  res.render("index"); //render the file in views named 'index'
 });
 
-app.get('/about', (request, response) => {
-    response.render('about');
+app.listen(app.get("port"), () => {
+  console.log(
+    "Express started on http://localhost:" +
+      app.get("port") +
+      "; press Ctrl-C to terminate."
+  );
 });
 
-app.use((request, response) =>{
-    response.status(404);
-    response.render('404');
+app.get("/ship", (req, res) => {
+  res.render("ship");
 });
 
-app.listen(app.get('port'), () => {
-    console.log('Express started on http://localhost:' = app.get('port') + '; press Ctrl-C to terminate.');
+app.post("/pirate", (req, res) => {
+  console.log(req.body);
+  res.send("Thanks");
 });
