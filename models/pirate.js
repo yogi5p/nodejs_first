@@ -1,10 +1,10 @@
 "use strict";
 
 module.exports = (sequelize, DataTypes) => {
-  var Pirates = sequelize.define(
-    "Pirates",
+  var Pirate = sequelize.define(
+    "Pirate",
     {
-      pirate_id: {
+      id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true
@@ -25,5 +25,5 @@ module.exports = (sequelize, DataTypes) => {
       }
     }
   );
-  return Pirates;
+  return Pirate;
 };

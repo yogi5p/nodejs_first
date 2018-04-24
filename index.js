@@ -1,21 +1,18 @@
 const path = require("path");
 const express = require("express");
-const Sequelize = require("sequelize");
-var models = require("./models");
-var passport = require("passport");
+const models = require("./models");
+const bodyParser = require("body-parser");
 
 const app = express(); //init our express app
+
 //body-parser will take http request body and attach it
 //to the request object automatticly for us
-app.use(require("body-parser")());
+// Put these statements before you define any routes.
+// support parsing of application/json type post data
+app.use(bodyParser.json());
 
-//Connect to your DB
-const db = new sqlite.Database("./Pirates.sqlite", err => {
-  if (err) {
-    return console.error(err.message);
-  }
-  console.log("........Connected to The DeadSea, arrrrrrgh.");
-});
+//support parsing of application/x-www-form-urlencoded post data
+app.use(bodyParser.urlencoded({ extended: true }));
 
 //Configuring the app to use the right templeting engine
 const handlebars = require("express-handlebars").create({
@@ -24,43 +21,43 @@ const handlebars = require("express-handlebars").create({
 
 app.engine("handlebars", handlebars.engine);
 app.set("views", path.join(__dirname, "views")); //where are the views?
+app.use(express.static(path.join(__dirname, "/public")));
 app.set("view engine", "handlebars");
 
 app.set("port", process.env.PORT || 3000);
 
-app.get("/", (req, res) => {
-  res.render("index"); //render the file in views named 'index'
-});
+//Routing Town!!!
+app.get("/", (req, res) => {});
 
 app.post("/", (req, res) => {
   console.log(req.body);
-  res.send({ body: req.body });
+  //take req.body and save it to the database!
+  //then return saved object with status 201
+  res.send({ name: req.body });
 });
 
-app.listen(app.get("port"), () => {
-  console.log(
-    "Express started on http://localhost:" +
-      app.get("port") +
-      "; press Ctrl-C to terminate."
-  );
-});
-
-app.get("/ship", (req, res) => {
-  res.render("ship");
+app.get("/pirate", (req, res) => {
+  res.render("pirate-form");
 });
 
 app.post("/pirate", (req, res) => {
   console.log(req.body);
-  res.send("Thanks");
+  //insert into the DB
+  if (req.body.family_name !== "") {
+    models.Pirate.create(req.body)
+      .then(data => {
+        res.status("200");
+        res.send(data.body);
+      })
+      .catch(error => res.sendStatus("409"));
+  } else {
+    res.status("400");
+    res.statusMessage("Bad Request family name is empty");
+  }
 });
 
-//Let's run a query to confirm
-const query = `SELECT * from pirates`;
-db.each(query, (err, row) => {
-  if (err) throw err;
-  console.log(row);
-});
-
+//Finally setting the app to listen gets it going
+// sync() will create all table if they doesn't exist in database
 models.sequelize.sync().then(function() {
   app.listen(app.get("port"), () => {
     console.log(
